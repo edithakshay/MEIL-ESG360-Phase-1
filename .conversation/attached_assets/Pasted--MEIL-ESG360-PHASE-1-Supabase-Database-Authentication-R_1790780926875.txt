@@ -1,0 +1,1561 @@
+# MEIL ESG360 — PHASE 1
+
+## Supabase Database + Authentication + RBAC + Organization Hierarchy
+
+You are building **MEIL ESG360 — Enterprise ESG & BRSR Reporting Platform** from a completely new Replit project.
+
+There is **NO existing repository/application that needs to be inspected**.
+
+This is **PHASE 1 ONLY**.
+
+Do not attempt to implement the complete MEIL ESG360 platform in this phase.
+
+The supplied MEIL ESG360 master specification is the product source of truth. Follow its terminology, hierarchy, security principles, persistence requirements, architecture and enterprise-grade approach.
+
+---
+
+# 1. PHASE 1 OBJECTIVE
+
+Implement the first functional foundation of MEIL ESG360:
+
+1. Supabase PostgreSQL database
+2. Database schema foundation
+3. Supabase integration
+4. Authentication
+5. User profiles
+6. Role-based access control
+7. Permissions
+8. Organization hierarchy
+9. Reporting-period foundation
+10. Secure API architecture
+11. Row-level/security boundaries
+12. Organization management UI
+13. Persistent data
+14. Basic audit foundation where required by this phase
+15. Automated/basic tests
+16. Documentation
+
+At the end of Phase 1, a real user must be able to:
+
+**Register/Login → authenticate → receive a session → access the application according to role → select/view an organization scope → navigate the MEIL hierarchy → create/manage permitted organizational records → refresh the browser → data remains persisted in Supabase.**
+
+Do NOT proceed to Phase 2 automatically.
+
+---
+
+# 2. ABSOLUTE DATABASE REQUIREMENT
+
+## SUPABASE IS THE ONLY APPLICATION DATABASE
+
+This is mandatory.
+
+### DO NOT USE:
+
+* Replit Database
+* Replit PostgreSQL
+* SQLite
+* local JSON files as persistent storage
+* in-memory database
+* browser localStorage as the application database
+* mock database
+* temporary database
+* Prisma with a local database
+* any alternative persistent database
+
+The permanent application database MUST be:
+
+**Supabase PostgreSQL**
+
+Supabase should also be used for:
+
+* PostgreSQL persistence
+* authentication where appropriate
+* Row Level Security
+* database migrations
+* Storage for evidence/documents in later phases
+
+Do not create a second database.
+
+Do not silently substitute another database if Supabase configuration is unavailable.
+
+---
+
+# 3. SUPABASE SETUP GATE
+
+Before implementing database-dependent functionality, determine whether Supabase credentials/configuration already exist.
+
+Required configuration should use environment variables/secrets.
+
+At minimum, determine the appropriate values for:
+
+```text
+SUPABASE_URL
+SUPABASE_ANON_KEY
+```
+
+If server-side privileged operations are actually required:
+
+```text
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+But:
+
+**NEVER expose SUPABASE_SERVICE_ROLE_KEY to frontend/client-side code.**
+
+Do not ask me to paste secret keys into chat.
+
+If Supabase is not configured, STOP at the configuration point and provide me with exact instructions:
+
+### Supabase setup instructions must include:
+
+1. Open/create a Supabase project.
+2. Open Supabase Project Settings.
+3. Locate API/project connection information.
+4. Obtain the project URL.
+5. Obtain the public/anon/publishable client key appropriate for the selected Supabase SDK.
+6. Determine whether a server-side service-role key is genuinely required.
+7. Add required values directly to **Replit Secrets/Environment Variables**.
+8. Tell me the exact variable names to create.
+9. Explain which values are public-safe and which are server-only.
+10. Tell me to confirm when configuration is complete.
+
+Then STOP.
+
+Do not create a fake database to continue.
+
+Do not ask me to send secret credentials in this chat.
+
+---
+
+# 4. TECHNOLOGY ARCHITECTURE
+
+Use a maintainable production-oriented architecture.
+
+Preferred stack:
+
+### Frontend
+
+* React
+* TypeScript
+* responsive enterprise UI
+* component-based architecture
+
+### Backend/API
+
+Use a TypeScript-compatible server/API architecture appropriate for the selected Replit project structure.
+
+Keep:
+
+* routes
+* controllers/handlers
+* services
+* authorization
+* database access
+* validation
+
+properly separated.
+
+### Database
+
+Supabase PostgreSQL.
+
+### Authentication
+
+Supabase Auth unless there is a documented architectural reason not to use it.
+
+### Storage
+
+Supabase Storage will be used in later phases for evidence/document storage.
+
+Do not implement the complete evidence system in Phase 1.
+
+---
+
+# 5. PROJECT STRUCTURE
+
+Create a clean scalable structure appropriate for the chosen framework.
+
+A structure similar to the following is preferred:
+
+```text
+/
+├── src/
+│   ├── app/
+│   ├── components/
+│   ├── layouts/
+│   ├── pages/
+│   ├── features/
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── organizations/
+│   │   ├── roles/
+│   │   └── reporting-periods/
+│   ├── hooks/
+│   ├── lib/
+│   │   ├── supabase/
+│   │   ├── auth/
+│   │   └── validation/
+│   ├── services/
+│   ├── types/
+│   └── styles/
+│
+├── server/
+│   ├── routes/
+│   ├── middleware/
+│   ├── services/
+│   ├── authorization/
+│   ├── validation/
+│   └── utils/
+│
+├── supabase/
+│   ├── migrations/
+│   └── seed/
+│
+├── tests/
+│
+├── docs/
+│
+├── .env.example
+├── README.md
+├── ARCHITECTURE.md
+├── DATABASE.md
+├── API.md
+├── SECURITY.md
+└── ...
+```
+
+Adapt this to the actual framework instead of blindly creating unnecessary folders.
+
+---
+
+# 6. SUPABASE DATABASE FOUNDATION
+
+Create a normalized PostgreSQL schema suitable for enterprise ESG software.
+
+Do NOT build the complete ESG/BRSR schema yet.
+
+Phase 1 should establish the foundational entities required by the master specification.
+
+At minimum design and implement appropriate tables for:
+
+### Organization hierarchy
+
+```text
+organizations
+entities
+business_units
+projects
+sites
+```
+
+Hierarchy:
+
+```text
+MEIL GROUP
+    ↓
+Subsidiary / Entity
+    ↓
+Business Unit
+    ↓
+Project
+    ↓
+Site / Location
+```
+
+The database must enforce valid relationships using:
+
+* UUID primary keys
+* foreign keys
+* appropriate constraints
+* timestamps
+* indexes
+* unique constraints where appropriate
+* status fields where appropriate
+* soft deletion where appropriate
+
+Do not use sequential exposed IDs if UUIDs are more appropriate for the architecture.
+
+---
+
+# 7. ORGANIZATION MODEL
+
+The organization system must support:
+
+### Group
+
+Example:
+
+```text
+MEIL Group
+```
+
+### Entity / Subsidiary
+
+Example:
+
+```text
+MEIL Infrastructure Ltd.
+```
+
+### Business Unit
+
+Example:
+
+```text
+Renewable Infrastructure
+```
+
+### Project
+
+Example:
+
+```text
+Solar Project Rajasthan
+```
+
+### Site
+
+Example:
+
+```text
+Rajasthan Site 01
+```
+
+Do not hard-code these example values as production data.
+
+If demo/sample records are created, clearly mark them as demo/sample records and keep them separate from actual enterprise data.
+
+---
+
+# 8. ORGANIZATION DATA MODEL
+
+Design appropriate fields.
+
+For example:
+
+## organizations
+
+Possible fields:
+
+```text
+id
+name
+code
+description
+organization_type
+status
+created_at
+updated_at
+created_by
+updated_by
+deleted_at
+```
+
+## entities
+
+```text
+id
+organization_id
+name
+code
+description
+status
+created_at
+updated_at
+created_by
+updated_by
+deleted_at
+```
+
+## business_units
+
+```text
+id
+entity_id
+name
+code
+description
+status
+created_at
+updated_at
+created_by
+updated_by
+deleted_at
+```
+
+## projects
+
+```text
+id
+business_unit_id
+name
+code
+description
+project_type
+location
+status
+start_date
+end_date
+created_at
+updated_at
+created_by
+updated_by
+deleted_at
+```
+
+## sites
+
+```text
+id
+project_id
+name
+code
+description
+address/location fields as appropriate
+status
+created_at
+updated_at
+created_by
+updated_by
+deleted_at
+```
+
+These are architectural starting points.
+
+Do not invent regulatory fields.
+
+---
+
+# 9. USERS AND PROFILES
+
+Implement authentication using Supabase Auth.
+
+Create an application-level profile model/table linked to the authenticated Supabase user.
+
+At minimum support:
+
+```text
+user_id
+full_name
+email
+phone if appropriate
+status
+created_at
+updated_at
+```
+
+Do not duplicate authentication credentials into your own database.
+
+Supabase Auth remains responsible for authentication credentials.
+
+The application profile stores application/user metadata.
+
+---
+
+# 10. ROLE-BASED ACCESS CONTROL
+
+Implement actual RBAC.
+
+Do not merely display different menus.
+
+Create an authorization model capable of supporting:
+
+```text
+users
+roles
+permissions
+user_roles
+role_permissions
+```
+
+Potential initial roles:
+
+```text
+SUPER_ADMIN
+ORG_ADMIN
+ESG_COORDINATOR
+ESG_REVIEWER
+APPROVER
+VIEWER
+```
+
+These are application roles and should be configurable.
+
+Do not claim these are SEBI-mandated roles.
+
+They are product authorization roles.
+
+---
+
+# 11. PERMISSION MODEL
+
+Create granular permissions rather than checking only role names throughout the frontend.
+
+Examples:
+
+```text
+organization.view
+organization.create
+organization.update
+organization.delete
+
+entity.view
+entity.create
+entity.update
+entity.delete
+
+business_unit.view
+business_unit.create
+business_unit.update
+business_unit.delete
+
+project.view
+project.create
+project.update
+project.delete
+
+site.view
+site.create
+site.update
+site.delete
+
+user.view
+user.create
+user.update
+user.disable
+
+role.view
+role.assign
+
+reporting_period.view
+reporting_period.create
+reporting_period.update
+```
+
+Keep the permission system extensible because later phases will require permissions for:
+
+* ESG metrics
+* evidence
+* validation
+* workflow
+* approvals
+* BRSR
+* reports
+* assurance
+* administration
+
+Do not implement all later permissions unless needed for the RBAC architecture.
+
+---
+
+# 12. SCOPE-BASED AUTHORIZATION
+
+The platform must eventually support permissions at different organizational scopes.
+
+Design Phase 1 so the architecture can support:
+
+```text
+Group scope
+Entity scope
+Business Unit scope
+Project scope
+Site scope
+```
+
+For example:
+
+A project-level ESG coordinator should not automatically receive unrestricted access to every MEIL project.
+
+Do not solve this only with frontend filtering.
+
+Authorization must ultimately be enforced server-side/database-side.
+
+---
+
+# 13. ROW LEVEL SECURITY
+
+Use Supabase PostgreSQL Row Level Security where appropriate.
+
+The architecture should prevent unauthorized users from accessing records merely by manipulating:
+
+* URLs
+* API requests
+* IDs
+* frontend state
+* browser developer tools
+
+Implement appropriate RLS policies for Phase 1 tables.
+
+Do not disable RLS simply to make development easier.
+
+If a policy is not yet implemented because a dependency belongs to a later phase, document it clearly rather than pretending security is complete.
+
+---
+
+# 14. AUTHENTICATION FEATURES
+
+Implement:
+
+### Registration
+
+If registration is enabled by the selected enterprise model.
+
+### Login
+
+Email/password initially unless the master specification later requires another mechanism.
+
+### Logout
+
+Destroy/end the application session correctly.
+
+### Session persistence
+
+Refreshing the browser must not unexpectedly log the user out when a valid session exists.
+
+### Protected routes
+
+Unauthenticated users must not access protected application areas.
+
+### Password reset
+
+Implement the appropriate Supabase password reset flow if supported by the configuration.
+
+### Auth error handling
+
+Handle:
+
+* invalid credentials
+* expired session
+* network error
+* unauthorized access
+* disabled user
+* missing profile
+
+with proper UI states.
+
+---
+
+# 15. APPLICATION AUTHORIZATION FLOW
+
+Implement this conceptual flow:
+
+```text
+User
+ ↓
+Supabase Authentication
+ ↓
+Authenticated Session
+ ↓
+Application User Profile
+ ↓
+Assigned Role(s)
+ ↓
+Permissions
+ ↓
+Organization Scope
+ ↓
+Authorized Application
+```
+
+Do not rely only on frontend authentication checks.
+
+The backend/API and database policies must enforce authorization.
+
+---
+
+# 16. REPORTING PERIOD FOUNDATION
+
+Create the foundational reporting-period model required for future ESG/BRSR reporting.
+
+Example structure:
+
+```text
+reporting_periods
+```
+
+Potential fields:
+
+```text
+id
+organization_id
+name
+start_date
+end_date
+status
+is_current
+created_at
+updated_at
+created_by
+updated_by
+```
+
+Possible statuses:
+
+```text
+DRAFT
+OPEN
+CLOSED
+FINALIZED
+```
+
+These statuses are application workflow states.
+
+Do not claim they are legally prescribed unless supported by the authoritative regulatory sources.
+
+The model must later support ESG/BRSR reporting periods.
+
+---
+
+# 17. API ARCHITECTURE
+
+Do not directly scatter database queries throughout React components.
+
+Create a service/API layer.
+
+Example:
+
+```text
+UI
+ ↓
+API Route
+ ↓
+Authentication
+ ↓
+Authorization
+ ↓
+Validation
+ ↓
+Service Layer
+ ↓
+Supabase Data Access
+ ↓
+PostgreSQL
+```
+
+Implement foundational APIs for:
+
+```text
+authentication/session
+current user
+users
+roles
+permissions
+organizations
+entities
+business units
+projects
+sites
+reporting periods
+```
+
+Use proper:
+
+* HTTP methods
+* status codes
+* validation
+* error handling
+* authorization checks
+* typed responses
+
+Do not expose sensitive database credentials.
+
+---
+
+# 18. INPUT VALIDATION
+
+Validate data on the server.
+
+Do not trust frontend validation alone.
+
+Validate:
+
+* required fields
+* UUIDs
+* dates
+* names
+* codes
+* enum/status values
+* foreign-key relationships
+* authorization scope
+
+Use a consistent validation approach.
+
+Return useful validation errors to the frontend.
+
+---
+
+# 19. ORGANIZATION MANAGEMENT UI
+
+Create a functional enterprise UI.
+
+The user should be able to navigate the hierarchy:
+
+```text
+MEIL Group
+  └── Entity
+       └── Business Unit
+            └── Project
+                 └── Site
+```
+
+Implement appropriate:
+
+* list views
+* detail views
+* create forms
+* edit forms
+* delete/deactivate behavior where appropriate
+* search
+* filtering
+* status display
+* hierarchy navigation
+* loading states
+* empty states
+* error states
+
+Do not create fake buttons.
+
+If a button exists, it must either work or clearly be marked as not yet available.
+
+---
+
+# 20. USER MANAGEMENT UI
+
+For authorized administrators, create the foundation for:
+
+```text
+Users
+Roles
+Permissions
+Organization Scope
+Account Status
+```
+
+An administrator should be able to:
+
+* view users
+* view roles
+* assign roles where authorized
+* deactivate/disable application access where supported
+* assign organizational scope where implemented
+
+Do not allow normal users to administer themselves.
+
+Do not allow users to escalate their own privileges.
+
+---
+
+# 21. SECURITY REQUIREMENTS
+
+Follow enterprise security principles.
+
+Implement or prepare for:
+
+* secure authentication
+* server-side authorization
+* Supabase RLS
+* least privilege
+* secure secrets
+* environment variables
+* input validation
+* safe error messages
+* no credential logging
+* no service-role key in frontend
+* no sensitive values committed to Git
+* HTTPS-ready architecture
+* secure session handling
+* protection against unauthorized object access
+
+Do not log:
+
+```text
+passwords
+access tokens
+refresh tokens
+service-role keys
+API secrets
+```
+
+---
+
+# 22. AUDIT FOUNDATION
+
+The complete audit-trail system comes later, but Phase 1 should establish the architecture for auditing.
+
+If implementing a basic audit table, design something like:
+
+```text
+audit_logs
+```
+
+with appropriate fields such as:
+
+```text
+id
+actor_user_id
+action
+resource_type
+resource_id
+organization_id
+timestamp
+metadata
+```
+
+Do not implement the entire enterprise audit system yet.
+
+However, foundational administrative actions should be designed so later phases can extend audit coverage without redesigning the architecture.
+
+---
+
+# 23. DATABASE MIGRATIONS
+
+Do not manually create an undocumented database structure.
+
+Create version-controlled Supabase migrations.
+
+Example:
+
+```text
+supabase/
+└── migrations/
+    ├── 001_initial_extensions.sql
+    ├── 002_profiles.sql
+    ├── 003_organization_hierarchy.sql
+    ├── 004_rbac.sql
+    ├── 005_reporting_periods.sql
+    └── 006_rls_policies.sql
+```
+
+Adapt migration names to the actual implementation.
+
+Every schema change must be reproducible.
+
+Do not make undocumented production-only database changes.
+
+---
+
+# 24. DATABASE INDEXING
+
+Add appropriate indexes for:
+
+* foreign keys
+* organization IDs
+* entity IDs
+* business unit IDs
+* project IDs
+* site IDs
+* user IDs
+* role IDs
+* reporting periods
+* status fields where useful
+* frequently queried codes/names where appropriate
+
+Do not blindly index every column.
+
+Document important indexing decisions.
+
+---
+
+# 25. SOFT DELETE
+
+Where appropriate, use soft deletion instead of physically deleting enterprise records.
+
+For example:
+
+```text
+deleted_at
+```
+
+However, do not force soft deletion onto authentication records or every table without architectural justification.
+
+Document deletion behavior.
+
+---
+
+# 26. DEMO DATA
+
+Do not fill the application with fake ESG statistics.
+
+If sample organization data is useful for testing, create clearly identifiable demo data such as:
+
+```text
+MEIL Group Demo
+Infrastructure Demo
+Renewable Infrastructure Demo
+Solar Project Rajasthan Demo
+Rajasthan Site Demo
+```
+
+Clearly identify it as:
+
+```text
+DEMO / SAMPLE DATA
+```
+
+Do not present demo data as real MEIL information.
+
+Do not create fake BRSR compliance values.
+
+Do not create fake ESG metrics.
+
+---
+
+# 27. UI DESIGN
+
+Create an enterprise-grade responsive foundation.
+
+Design principles:
+
+* clean
+* professional
+* accessible
+* responsive
+* mobile-aware
+* desktop-friendly
+* consistent typography
+* consistent spacing
+* reusable components
+* clear navigation
+* proper loading states
+* proper empty states
+* proper error states
+
+Create a reusable design system foundation for later modules.
+
+Do not spend Phase 1 on decorative dashboard graphics.
+
+---
+
+# 28. NAVIGATION FOUNDATION
+
+Create the application navigation structure.
+
+Possible sections:
+
+```text
+Dashboard
+Organization
+ESG Data
+Evidence
+Validation
+Workflow
+BRSR
+Reports
+Analytics
+Assurance
+Administration
+```
+
+In Phase 1:
+
+* Organization and Administration foundation should be functional.
+* Other modules can be disabled or marked "Coming in later implementation phase."
+* Do not create fake functionality behind those navigation items.
+
+---
+
+# 29. NO FAKE FEATURES
+
+This is mandatory.
+
+Do not create:
+
+* fake dashboard statistics
+* fake ESG charts
+* fake BRSR scores
+* fake compliance indicators
+* fake AI responses
+* fake report downloads
+* fake approval actions
+* fake database persistence
+* fake API success messages
+
+A feature is only considered implemented if it actually works.
+
+The master specification explicitly requires avoiding fake features and fake compliance claims.
+
+---
+
+# 30. NO FAKE COMPLIANCE
+
+Never display statements such as:
+
+```text
+SEBI Certified
+SEBI Approved
+100% BRSR Compliant
+Official SEBI Platform
+Government Certified
+```
+
+The application is a software platform supporting BRSR reporting.
+
+Regulatory interpretation must remain grounded in the supplied authoritative sources.
+
+Do not invent regulatory obligations.
+
+---
+
+# 31. DOCUMENTATION
+
+Create/update:
+
+```text
+README.md
+ARCHITECTURE.md
+DATABASE.md
+API.md
+SECURITY.md
+```
+
+### README
+
+Include:
+
+* project purpose
+* technology stack
+* local development
+* Replit development
+* Supabase prerequisite
+* environment variables
+* migration process
+* testing
+* deployment basics
+
+### ARCHITECTURE.md
+
+Document:
+
+```text
+Frontend
+ ↓
+API
+ ↓
+Authentication
+ ↓
+Authorization
+ ↓
+Service Layer
+ ↓
+Supabase
+ ↓
+PostgreSQL
+```
+
+### DATABASE.md
+
+Document:
+
+* tables
+* relationships
+* keys
+* indexes
+* RLS strategy
+* migration strategy
+* deletion strategy
+
+### API.md
+
+Document:
+
+* endpoints
+* authentication requirements
+* authorization requirements
+* request/response structures
+* errors
+
+### SECURITY.md
+
+Document:
+
+* authentication
+* RBAC
+* RLS
+* secret management
+* server/client separation
+* authorization
+* data access
+* future security hardening
+
+---
+
+# 32. ENVIRONMENT VARIABLES
+
+Create:
+
+```text
+.env.example
+```
+
+Never put real credentials inside it.
+
+Example:
+
+```text
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+Only include the service-role variable if the implementation genuinely requires it.
+
+Clearly document:
+
+```text
+PUBLIC/client variables
+SERVER-only variables
+```
+
+Do not expose server-only secrets through frontend environment variables.
+
+---
+
+# 33. TESTING
+
+Before declaring Phase 1 complete, test:
+
+### Application
+
+* application starts
+* frontend loads
+* backend/API starts
+* production build works
+* TypeScript check passes
+
+### Authentication
+
+* registration if enabled
+* login
+* logout
+* session persistence
+* protected routes
+* unauthorized access
+* password reset if implemented
+
+### RBAC
+
+Test:
+
+```text
+Admin
+Coordinator
+Reviewer
+Approver
+Viewer
+```
+
+or the actual roles implemented.
+
+Verify that unauthorized users cannot access protected actions.
+
+### Organization
+
+Test:
+
+```text
+Group
+→ Entity
+→ Business Unit
+→ Project
+→ Site
+```
+
+Create records.
+
+Edit records.
+
+Retrieve records.
+
+Verify relationships.
+
+Verify unauthorized users cannot access records outside their permitted scope.
+
+### Persistence
+
+Create a record.
+
+Refresh browser.
+
+Log out.
+
+Log back in.
+
+Verify data remains in Supabase.
+
+---
+
+# 34. DATABASE VERIFICATION
+
+Verify that the actual records exist in Supabase PostgreSQL.
+
+Do not report:
+
+```text
+Database working
+```
+
+unless the application has actually successfully performed database operations.
+
+Verify:
+
+* insert
+* select
+* update
+* appropriate delete/deactivate behavior
+* foreign-key relationships
+* RLS behavior
+
+---
+
+# 35. SECURITY VERIFICATION
+
+Verify:
+
+* service-role key is never sent to browser
+* secrets are not committed
+* unauthorized API requests fail
+* unauthorized organization access fails
+* protected routes work
+* RLS policies behave as intended
+* user cannot elevate own privileges
+
+---
+
+# 36. IMPORTANT IMPLEMENTATION RULE
+
+Do not attempt to build Phase 2 features while working on Phase 1.
+
+Do NOT implement the complete:
+
+* ESG metric engine
+* ESG data collection
+* evidence management
+* validation engine
+* workflow engine
+* BRSR engine
+* BRSR Core
+* consolidation
+* SDG mapping
+* analytics
+* report generation
+* assurance
+* AI
+* document intelligence
+
+Those belong to later phases.
+
+Build the foundation correctly so those modules can be added without architectural rewrites.
+
+---
+
+# 37. DEVELOPMENT PROCESS
+
+Work incrementally.
+
+Use this order:
+
+```text
+STEP 1
+Project structure
+        ↓
+STEP 2
+Supabase configuration
+        ↓
+STEP 3
+Database migrations
+        ↓
+STEP 4
+Database/RLS verification
+        ↓
+STEP 5
+Authentication
+        ↓
+STEP 6
+User profiles
+        ↓
+STEP 7
+RBAC
+        ↓
+STEP 8
+Organization hierarchy
+        ↓
+STEP 9
+Reporting periods
+        ↓
+STEP 10
+API/service layer
+        ↓
+STEP 11
+Organization management UI
+        ↓
+STEP 12
+User/role administration UI
+        ↓
+STEP 13
+Testing
+        ↓
+STEP 14
+Security verification
+        ↓
+STEP 15
+Documentation
+```
+
+After each major step:
+
+1. Run the application.
+2. Run TypeScript checks.
+3. Run relevant tests.
+4. Check database operations.
+5. Fix errors.
+6. Only then continue.
+
+Do not accumulate unresolved errors and continue building on top of them.
+
+---
+
+# 38. FAILURE HANDLING
+
+If something fails:
+
+Do NOT hide the error.
+
+Report:
+
+```text
+What failed
+Why it failed
+What was already completed
+What remains
+What action is required
+```
+
+Do not claim successful implementation when the feature is broken.
+
+---
+
+# 39. SUPABASE INSTRUCTIONS TO ME
+
+Whenever you reach a point where I must perform an action in Supabase:
+
+STOP and clearly tell me:
+
+```text
+SUPABASE ACTION REQUIRED
+
+1. Go to: [exact Supabase location]
+2. Perform: [exact action]
+3. Create/configure: [exact object]
+4. Copy/use: [exact non-secret value]
+5. Add to Replit Secrets:
+   VARIABLE_NAME = ...
+6. Do NOT paste secret keys into chat.
+7. Reply when completed.
+```
+
+Then wait.
+
+Do not continue by creating a replacement database.
+
+---
+
+# 40. FINAL PHASE 1 ACCEPTANCE CRITERIA
+
+Phase 1 is complete only when this complete journey works:
+
+```text
+Open MEIL ESG360
+        ↓
+Login
+        ↓
+Supabase authenticates user
+        ↓
+Application loads user profile
+        ↓
+Role is identified
+        ↓
+Permissions are resolved
+        ↓
+Organization scope is resolved
+        ↓
+Authorized application shell opens
+        ↓
+Organization hierarchy is accessible
+        ↓
+Group
+ ↓
+Entity
+ ↓
+Business Unit
+ ↓
+Project
+ ↓
+Site
+        ↓
+Authorized user can create/update permitted records
+        ↓
+Records are stored in Supabase PostgreSQL
+        ↓
+Browser refresh
+        ↓
+Data remains available
+        ↓
+Unauthorized action is rejected
+        ↓
+Audit/security foundation is preserved
+```
+
+This must be a **real functional workflow**, not a visual mockup.
+
+---
+
+# 41. DO NOT AUTO-PROCEED
+
+When Phase 1 is complete:
+
+STOP.
+
+Do not automatically start Phase 2.
+
+Provide a final Phase 1 report containing:
+
+### 1. Technology stack
+
+### 2. Files created/modified
+
+### 3. Supabase configuration
+
+### 4. Database tables created
+
+### 5. Database relationships
+
+### 6. RLS policies
+
+### 7. Authentication implementation
+
+### 8. RBAC implementation
+
+### 9. Organization hierarchy implementation
+
+### 10. Reporting-period implementation
+
+### 11. API endpoints
+
+### 12. Tests performed
+
+### 13. Test results
+
+### 14. Known issues
+
+### 15. Security issues, if any
+
+### 16. What remains for Phase 2
+
+### 17. Exact recommended next step
+
+Do not claim Phase 1 is complete if any required acceptance criterion is failing.
+
+Wait for my instruction before starting Phase 2.
+
+# END OF PHASE 1
